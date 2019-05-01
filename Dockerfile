@@ -23,7 +23,8 @@ RUN set -ex && apk --update --no-cache add \
     openjdk8-jre \
     libstdc++ \
     ca-certificates \
-    nss
+    nss \
+    nodejs-npm
 
 WORKDIR /tmp
 COPY all/install-protobuf.sh /tmp
@@ -54,13 +55,16 @@ RUN curl -sSL https://github.com/grpc/grpc-web/releases/download/1.0.3/protoc-ge
     -o /tmp/grpc_web_plugin && \
     chmod +x /tmp/grpc_web_plugin
 
+RUN ls -al `npm bin -g`/protoc-gen-ts
+
 FROM alpine:$alpine AS protoc-all
 
 RUN set -ex && apk --update --no-cache add \
     bash \
     libstdc++ \
     libc6-compat \
-    ca-certificates
+    ca-certificates \ 
+    nodejs
 
 COPY --from=build /tmp/grpc/bins/opt/grpc_* /usr/local/bin/
 COPY --from=build /tmp/grpc/bins/opt/protobuf/protoc /usr/local/bin/
@@ -71,6 +75,7 @@ COPY --from=build /usr/local/include/google/ /usr/local/include/google
 COPY --from=build /usr/local/bin/prototool /usr/local/bin/prototool
 COPY --from=build /go/bin/* /usr/local/bin/
 COPY --from=build /tmp/grpc_web_plugin /usr/local/bin/grpc_web_plugin
+COPY --from=build  /usr/lib/node_modules /usr/lib/node_modules
 
 COPY --from=build /go/src/github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger/options/ /usr/local/include/protoc-gen-swagger/options/
 

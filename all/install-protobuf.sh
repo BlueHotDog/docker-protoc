@@ -41,3 +41,12 @@ cd /tmp
 git clone -b v$2.x --recursive https://github.com/grpc/grpc-java.git
 cd /tmp/grpc-java/compiler
 ../gradlew java_pluginExecutable
+
+# Typescript
+cd /tmp
+npm install -g ts-protoc-gen
+
+# Scala
+cd /tmp
+curl -sSL https://github.com/scalapb/ScalaPB/releases/download/v0.8.3/scalapbc-0.8.3.zip -o scalapbc.zip && unzip scalapbc.zip
+cp ./scalapbc-0.8.3/bin/scalapbc /usr/local/bin/

@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 printUsage() {
     echo "gen-proto generates grpc and protobuf @ Namely"
@@ -24,7 +24,7 @@ GEN_DOCS=false
 DOCS_FORMAT="html,index.html"
 LINT=false
 LINT_CHECKS=""
-SUPPORTED_LANGUAGES=("go" "ruby" "csharp" "java" "python" "objc" "gogo" "php" "node" "web" "cpp" "descriptor_set")
+SUPPORTED_LANGUAGES=("go" "ruby" "csharp" "java" "python" "objc" "gogo" "php" "node" "node_ts" "web" "cpp" "descriptor_set", "scala")
 EXTRA_INCLUDES=""
 OUT_DIR=""
 GO_SOURCE_RELATIVE=""
@@ -138,12 +138,7 @@ fi
 
 if [[ $OUT_DIR == '' ]]; then
     GEN_DIR="gen"
-    if [[ $GEN_LANG == "python" ]]; then
-        # Python needs underscores to read the directory name.
-        OUT_DIR="${GEN_DIR}/pb_$GEN_LANG"
-    else
-        OUT_DIR="${GEN_DIR}/pb-$GEN_LANG"
-    fi
+    OUT_DIR="${GEN_DIR}/pb_$GEN_LANG"
 fi
 
 if [[ ! -d $OUT_DIR ]]; then
@@ -177,6 +172,10 @@ plugins=grpc+embedded\
         ;;
     "node")
         GEN_STRING="--grpc_out=$OUT_DIR --js_out=import_style=commonjs,binary:$OUT_DIR --plugin=protoc-gen-grpc=`which grpc_${PLUGIN_LANG}_plugin`"
+        ;;
+    "node_ts")
+        TS_BIN="/usr/lib/node_modules/ts-protoc-gen/bin/protoc-gen-ts"
+        GEN_STRING="--ts_out=$OUT_DIR --js_out=import_style=commonjs,binary:${OUT_DIR} --plugin=protoc-gen-ts=$TS_BIN"
         ;;
     "web")
         GEN_STRING="--grpc-web_out=import_style=typescript,mode=grpcwebtext:$OUT_DIR --js_out=import_style=commonjs:$OUT_DIR --plugin=protoc-gen-grpc-web=`which grpc_${PLUGIN_LANG}_plugin`"
@@ -217,6 +216,11 @@ else
     PROTO_INCLUDE="-I . $PROTO_INCLUDE"
     PROTO_FILES=($FILE)
 fi
+
+echo "protoc $PROTO_INCLUDE \
+    $GEN_STRING \
+    $LINT_STRING \
+    ${PROTO_FILES[@]}"
 
 protoc $PROTO_INCLUDE \
     $GEN_STRING \
